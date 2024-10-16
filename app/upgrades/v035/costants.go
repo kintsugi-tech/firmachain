@@ -1,4 +1,4 @@
-package v0_3_5
+package v035
 
 import (
 	icacontrollertypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/controller/types"
@@ -10,11 +10,11 @@ import (
 )
 
 // UpgradeName defines the on-chain upgrade name for the Firmachain v4 upgrade.
-const UpgradeName = "v0_3_5"
+const UpgradeName = "v0.3.5"
 
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
-	CreateUpgradeHandler: CreateV0_3_5UpgradeHandler,
+	CreateUpgradeHandler: CreateV035UpgradeHandler,
 	StoreUpgrades: store.StoreUpgrades{
 		// NOTICE: https://github.com/cosmos/ibc-go/issues/1088
 		Added: []string{"wasm", icacontrollertypes.StoreKey, icahosttypes.StoreKey},

@@ -1,4 +1,4 @@
-package v0_3_5
+package v035
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,7 +13,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v4/modules/apps/27-interchain-accounts/types"
 )
 
-func CreateV0_3_5UpgradeHandler(
+func CreateV035UpgradeHandler(
 	mm *module.Manager,
 	cfg module.Configurator,
 	_ *keepers.AppKeepers,

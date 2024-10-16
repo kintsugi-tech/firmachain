@@ -1,4 +1,4 @@
-package v4
+package v04
 
 import (
 	store "github.com/cosmos/cosmos-sdk/store/types"
@@ -7,7 +7,7 @@ import (
 )
 
 // UpgradeName defines the on-chain upgrade name for the Firmachain v4 upgrade.
-const UpgradeName = "v4"
+const UpgradeName = "v04"
 
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,

@@ -101,8 +101,8 @@ import (
 	"github.com/firmachain/firmachain/app/keepers"
 	encparams "github.com/firmachain/firmachain/app/params"
 	"github.com/firmachain/firmachain/app/upgrades"
-	v0_3_5 "github.com/firmachain/firmachain/app/upgrades/v0_3_5"
-	v4 "github.com/firmachain/firmachain/app/upgrades/v4"
+	v035 "github.com/firmachain/firmachain/app/upgrades/v035"
+	v04 "github.com/firmachain/firmachain/app/upgrades/v04"
 )
 
 const (
@@ -121,7 +121,7 @@ var (
 	// https://github.com/CosmWasm/wasmd/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
 	EnableSpecificProposals = ""
 
-	Upgrades = []upgrades.Upgrade{v0_3_5.Upgrade, v4.Upgrade}
+	Upgrades = []upgrades.Upgrade{v035.Upgrade, v04.Upgrade}
 )
 
 // These constants are derived from the above variables.
