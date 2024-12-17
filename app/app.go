@@ -11,13 +11,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
-	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -57,14 +57,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
-	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -75,7 +75,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
+
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
@@ -83,7 +83,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v7/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
-	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
+
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibcporttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -124,6 +124,11 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 
 	encparams "github.com/firmachain/firmachain/app/params"
+
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
+	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
 )
 
 const (
@@ -181,18 +186,13 @@ func GetEnabledProposals() []wasm.ProposalType {
 }
 
 func getGovProposalHandlers() []govclient.ProposalHandler {
-	// this line is used by starport scaffolding # stargate/app/govProposalHandlers
-
-	govProposalHandlers := append(
+	return []govclient.ProposalHandler{
 		paramsclient.ProposalHandler,
 		upgradeclient.LegacyProposalHandler,
 		upgradeclient.LegacyCancelProposalHandler,
 		ibcclientclient.UpdateClientProposalHandler,
 		ibcclientclient.UpgradeProposalHandler,
-		// this line is used by starport scaffolding # stargate/app/govProposalHandler
-	)
-
-	return govProposalHandlers
+	}
 }
 
 var (
@@ -210,7 +210,7 @@ var (
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
-		gov.NewAppModuleBasic(getGovProposalHandlers()...),
+		gov.NewAppModuleBasic(getGovProposalHandlers()),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
@@ -267,7 +267,7 @@ func init() {
 type App struct {
 	*baseapp.BaseApp
 
-	cdc               *codec.LegacyAmino
+	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
 	configurator      module.Configurator
@@ -275,9 +275,9 @@ type App struct {
 	invCheckPeriod uint
 
 	// keys to access the substores
-	keys    map[string]*sdk.KVStoreKey
-	tkeys   map[string]*sdk.TransientStoreKey
-	memKeys map[string]*sdk.MemoryStoreKey
+	keys    map[string]*storetypes.KVStoreKey
+	tkeys   map[string]*storetypes.TransientStoreKey
+	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers
 	AccountKeeper    authkeeper.AccountKeeper
@@ -320,84 +320,6 @@ type App struct {
 
 func (app *App) registerUpgradeHandlers(icaModule ica.AppModule) {
 
-	// old upgradehandler
-	/*
-		app.UpgradeKeeper.SetUpgradeHandler("v0.3.5", func(ctx sdk.Context, plan upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-
-			// cosmos 0.44.5 consensus version (old)
-			fromVM := map[string]uint64{
-				"auth":         2,
-				"authz":        1,
-				"bank":         2,
-				"capability":   1,
-				"crisis":       1,
-				"distribution": 2,
-				"evidence":     1,
-				"gov":          2,
-				"mint":         1,
-				"params":       1,
-				"slashing":     2,
-				"staking":      2,
-				"upgrade":      1,
-				"vesting":      1,
-				"ibc":          1,
-				"genutil":      1,
-				"transfer":     1,
-				"feegrant":     1,
-				"contract":     1,
-				"nft":          1,
-				"token":        1,
-				"burn":         1,
-			}
-
-			// Add Interchain Accounts host module
-			// set the ICS27 consensus version so InitGenesis is not run
-			fromVM[icatypes.ModuleName] = icaModule.ConsensusVersion()
-
-			// create ICS27 Controller submodule params, controller module not enabled.
-			controllerParams := icacontrollertypes.Params{}
-
-			// create ICS27 Host submodule params
-			hostParams := icahosttypes.Params{
-				HostEnabled: true,
-				AllowMessages: []string{
-					"/cosmos.bank.v1beta1.MsgSend",
-					"/cosmos.bank.v1beta1.MsgMultiSend",
-					"/cosmos.staking.v1beta1.MsgDelegate",
-					"/cosmos.staking.v1beta1.MsgUndelegate",
-					"/cosmos.staking.v1beta1.MsgBeginRedelegate",
-					"/cosmos.staking.v1beta1.MsgCreateValidator",
-					"/cosmos.staking.v1beta1.MsgEditValidator",
-					"/cosmos.vesting.v1beta1.MsgCreateVestingAccount",
-					"/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
-					"/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
-					"/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission",
-					"/cosmos.distribution.v1beta1.MsgFundCommunityPool",
-					"/cosmos.feegrant.v1beta1.MsgGrantAllowance",
-					"/cosmos.feegrant.v1beta1.MsgRevokeAllowance",
-					"/cosmos.gov.v1beta1.MsgVote",
-					"/cosmos.gov.v1beta1.MsgVoteWeighted",
-					"/cosmos.gov.v1beta1.MsgSubmitProposal",
-					"/cosmos.gov.v1beta1.MsgDeposit",
-					"/cosmos.authz.v1beta1.MsgExec",
-					"/cosmos.authz.v1beta1.MsgGrant",
-					"/cosmos.authz.v1beta1.MsgRevoke",
-					"/cosmwasm.wasm.v1.MsgStoreCode",
-					"/cosmwasm.wasm.v1.MsgInstantiateContract",
-					"/cosmwasm.wasm.v1.InstantiateContract2",
-					"/cosmwasm.wasm.v1.MsgExecuteContract",
-					"/ibc.applications.transfer.v1.MsgTransfer",
-				},
-			}
-
-			// InitModule will initialize the interchain accounts moudule. It should only be
-			// called once and as an alternative to InitGenesis.
-			icaModule.InitModule(ctx, controllerParams, hostParams)
-
-			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-		})
-	*/
-
 	// new upgradehandler (v0.4.0)
 	// should match upgradename with governance convention
 	app.UpgradeKeeper.SetUpgradeHandler("v0.4.0", func(ctx sdk.Context, plan upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
@@ -411,19 +333,6 @@ func (app *App) registerUpgradeHandlers(icaModule ica.AppModule) {
 	if err != nil {
 		panic(err)
 	}
-
-	// old upgradestoreloader
-	/*
-		if upgradeInfo.Name == "v0.3.5" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-			storeUpgrades := storetypes.StoreUpgrades{
-				// NOTICE: https://github.com/cosmos/ibc-go/issues/1088
-				Added: []string{"wasm", icacontrollertypes.StoreKey, icahosttypes.StoreKey},
-			}
-
-			// configure store loader that checks if version == upgradeHeight and applies store upgrades
-			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-		}
-	*/
 
 	// new upgradestoreloader (v0.4.0)
 	// there are no new module or data structure upgrades in the v0.4.0 so pass.
@@ -444,8 +353,8 @@ func New(
 	wasmOpts []wasm.Option,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	appCodec := encodingConfig.Codec
-	cdc := encodingConfig.Amino
+
+	appCodec, legacyAmino := encodingConfig.Marshaler, encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
 	bApp := baseapp.NewBaseApp(Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
@@ -453,10 +362,13 @@ func New(
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
+	// TODO: ibhost removed StoreKey from v6 to v7. Is it still needed?
+	legacyIbchostStoreKey := "ibc"
+
 	keys := sdk.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
-		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
+		govtypes.StoreKey, paramstypes.StoreKey, legacyIbchostStoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey, authzkeeper.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 		nftmoduletypes.StoreKey,
@@ -471,16 +383,15 @@ func New(
 
 	app := &App{
 		BaseApp:           bApp,
-		cdc:               cdc,
+		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
 		invCheckPeriod:    invCheckPeriod,
-		keys:              keys,
 		tkeys:             tkeys,
 		memKeys:           memKeys,
 	}
 
-	app.ParamsKeeper = initParamsKeeper(appCodec, cdc, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
+	app.ParamsKeeper = initParamsKeeper(appCodec, legacyAmino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()))
