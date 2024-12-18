@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -50,13 +49,12 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			if err != nil {
 				inBuf := bufio.NewReader(cmd.InOrStdin())
 				keyringBackend, err := cmd.Flags().GetString(flags.FlagKeyringBackend)
-				userInput := strings.NewReader("Password: ")
 				if err != nil {
 					return fmt.Errorf("failed to parse keyring backend: %w", err)
 				}
 				if keyringBackend != "" && clientCtx.Keyring == nil {
 					var err error
-					kr, err = keyring.New(sdk.KeyringServiceName(), keyringBackend, clientCtx.HomeDir, userInput, inBuf)
+					kr, err = keyring.New(sdk.KeyringServiceName(), keyringBackend, clientCtx.HomeDir, inBuf, clientCtx.Codec)
 					if err != nil {
 						return err
 					}
