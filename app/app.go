@@ -313,12 +313,10 @@ type App struct {
 	TransferKeeper ibctransferkeeper.Keeper
 	IBCFeeKeeper   ibcfeekeeper.Keeper
 	IBCHooksKeeper *ibchookskeeper.Keeper
+	ICAHostKeeper  icahostkeeper.Keeper
 
 	// Wasm Keepers
 	WasmKeeper wasmkeeper.Keeper
-
-	// ICA Keepers
-	ICAHostKeeper icahostkeeper.Keeper
 
 	// Custom Keepers
 	NftKeeper      nftmodulekeeper.Keeper
@@ -496,6 +494,22 @@ func New(
 		stakingKeeper,
 		govModAddress,
 	)
+	// TODO: do stakingHooks need to be registered before passing the keeper to slashingKeeper?
+	// register the staking hooks
+	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
+	stakingKeeper.SetHooks(
+		stakingtypes.NewMultiStakingHooks(
+			app.DistrKeeper.Hooks(),
+			app.SlashingKeeper.Hooks(),
+		),
+	)
+	app.StakingKeeper = stakingKeeper
+	app.EvidenceKeeper = *evidencekeeper.NewKeeper(
+		appCodec,
+		keys[evidencetypes.StoreKey],
+		app.StakingKeeper,
+		app.SlashingKeeper,
+	)
 	app.CrisisKeeper = crisiskeeper.NewKeeper(
 		appCodec,
 		keys[crisistypes.StoreKey],
@@ -517,17 +531,6 @@ func New(
 		app.BaseApp,
 		govModAddress,
 	)
-
-	// register the staking hooks
-	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	stakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(
-			app.DistrKeeper.Hooks(),
-			app.SlashingKeeper.Hooks(),
-		),
-	)
-	app.StakingKeeper = stakingKeeper
-
 	app.AuthzKeeper = authzkeeper.NewKeeper(
 		keys[authzkeeper.StoreKey],
 		appCodec,
@@ -546,25 +549,11 @@ func New(
 		app.UpgradeKeeper,
 		scopedIBCKeeper,
 	)
-
-	// register the proposal types
-	govRouter := govv1beta.NewRouter()
-	govRouter.AddRoute(govtypes.RouterKey, govv1beta.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
-
-	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
-
-	transferModule := transfer.NewAppModule(app.TransferKeeper)
-	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
-
-	// Configure the hooks keeper
 	hooksKeeper := ibchookskeeper.NewKeeper(
 		app.keys[ibchookstypes.StoreKey],
 	)
@@ -586,31 +575,6 @@ func New(
 		scopedICAHostKeeper,
 		app.MsgServiceRouter(),
 	)
-
-	icaModule := ica.NewAppModule(nil, &app.ICAHostKeeper)
-	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
-
-	app.registerUpgradeHandlers(icaModule)
-
-	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
-	evidenceKeeper := evidencekeeper.NewKeeper(
-		appCodec,
-		keys[evidencetypes.StoreKey],
-		app.StakingKeeper,
-		app.SlashingKeeper,
-	)
-	// If evidence needs to be handled for the app, set routes in router here and seal
-	app.EvidenceKeeper = *evidenceKeeper
-
-	wasmDir := filepath.Join(homePath, "data")
-	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
-
-	if err != nil {
-		panic("error : read wasm config: " + err.Error())
-	}
-
-	supportedFeatures := "iterator,staking,stargate"
-
 	// Do not use this middleware for anything except x/wasm requirement.
 	// The spec currently requires new channels to be created, to use it.
 	// We need to wait for Channel Upgradability before we can use this for any other middleware.
@@ -624,7 +588,14 @@ func New(
 		app.BankKeeper,
 	)
 
-	app.WasmKeeper = wasm.NewKeeper(
+	// Wasm keeper
+	wasmDir := filepath.Join(homePath, "data")
+	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
+	if err != nil {
+		panic("error : read wasm config: " + err.Error())
+	}
+	supportedFeatures := "iterator,staking,stargate"
+	app.WasmKeeper = wasmkeeper.NewKeeper(
 		appCodec,
 		keys[wasmtypes.StoreKey],
 		app.AccountKeeper,
@@ -645,11 +616,16 @@ func New(
 		wasmOpts...,
 	)
 
-	// register wasm gov proposal types
+	// Gov Keeper
+	// register the proposal types
+	govRouter := govv1beta.NewRouter()
+	govRouter.AddRoute(govtypes.RouterKey, govv1beta.ProposalHandler).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
 	if len(enabledProposals) != 0 {
 		govRouter.AddRoute(wasmtypes.RouterKey, wasm.NewWasmProposalHandler(app.WasmKeeper, enabledProposals))
 	}
-
 	govKeeper := govkeeper.NewKeeper(
 		appCodec,
 		keys[govtypes.StoreKey],
@@ -667,35 +643,34 @@ func New(
 	)
 
 	// Create static IBC router, add transfer route, then set and seal it
+	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
+	icaModule := ica.NewAppModule(nil, &app.ICAHostKeeper)
+	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
+	app.registerUpgradeHandlers(icaModule)
 	ibcRouter := ibcporttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
 	ibcRouter.AddRoute(wasmtypes.ModuleName, wasm.NewIBCHandler(app.WasmKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper))
 	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule)
-	// this line is used by starport scaffolding # ibc/app/router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
+	// Custom modules' keepers
 	app.ContractKeeper = *contractmodulekeeper.NewKeeper(
 		appCodec,
 		keys[contractmoduletypes.StoreKey],
 		keys[contractmoduletypes.MemStoreKey],
 	)
-	contractModule := contractmodule.NewAppModule(appCodec, app.ContractKeeper)
-
 	app.NftKeeper = *nftmodulekeeper.NewKeeper(
 		appCodec,
 		keys[nftmoduletypes.StoreKey],
 		keys[nftmoduletypes.MemStoreKey],
 	)
-	nftModule := nftmodule.NewAppModule(appCodec, app.NftKeeper)
-
 	app.TokenKeeper = *tokenmodulekeeper.NewKeeper(
 		appCodec,
 		keys[tokenmoduletypes.StoreKey],
 		keys[tokenmoduletypes.MemStoreKey],
 		app.BankKeeper,
 	)
-	tokenModule := tokenmodule.NewAppModule(appCodec, app.TokenKeeper)
-
 	app.BurnKeeper = *burnmodulekeeper.NewKeeper(
 		appCodec,
 		keys[burnmoduletypes.StoreKey],
@@ -703,6 +678,10 @@ func New(
 		app.BankKeeper,
 		app.AccountKeeper,
 	)
+
+	nftModule := nftmodule.NewAppModule(appCodec, app.NftKeeper)
+	contractModule := contractmodule.NewAppModule(appCodec, app.ContractKeeper)
+	tokenModule := tokenmodule.NewAppModule(appCodec, app.TokenKeeper)
 	burnModule := burnmodule.NewAppModule(appCodec, app.BurnKeeper)
 
 	/****  Module Options ****/
@@ -733,13 +712,13 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		transferModule,
-		// this line is used by starport scaffolding # stargate/app/appModule
 		nftModule,
 		contractModule,
 		tokenModule,
 		burnModule,
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		icaModule,
+		// TODO: consensus?
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -755,7 +734,7 @@ func New(
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		vestingtypes.ModuleName,
-		ibchost.ModuleName,
+		ibcexported.ModuleName,
 		ibctransfertypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
@@ -764,14 +743,16 @@ func New(
 		genutiltypes.ModuleName,
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/beginBlockers
 		authz.ModuleName,
+		consensusparamtypes.ModuleName,
 		nftmoduletypes.ModuleName,
 		contractmoduletypes.ModuleName,
 		tokenmoduletypes.ModuleName,
 		burnmoduletypes.ModuleName,
-		wasm.ModuleName,
+		wasmtypes.ModuleName,
 		icatypes.ModuleName,
+		// TODO: ibcfee?
+		// TODO: ibchooks?
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -790,16 +771,18 @@ func New(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
-		ibchost.ModuleName,
+		// TODO: consensus?
+		ibcexported.ModuleName,
 		ibctransfertypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/endBlockers
 		authz.ModuleName,
 		nftmoduletypes.ModuleName,
 		contractmoduletypes.ModuleName,
 		tokenmoduletypes.ModuleName,
 		burnmoduletypes.ModuleName,
-		wasm.ModuleName,
+		wasmtypes.ModuleName,
 		icatypes.ModuleName,
+		// TODO: ibcfee?
+		// TODO: ibchooks?
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -818,22 +801,23 @@ func New(
 		govtypes.ModuleName,
 		minttypes.ModuleName,
 		crisistypes.ModuleName,
-		ibchost.ModuleName,
+		ibcexported.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
+		// TODO: consensus?
 		ibctransfertypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
-
-		// this line is used by starport scaffolding # stargate/app/initGenesis
 		nftmoduletypes.ModuleName,
 		contractmoduletypes.ModuleName,
 		tokenmoduletypes.ModuleName,
 		burnmoduletypes.ModuleName,
-		wasm.ModuleName,
+		wasmtypes.ModuleName,
 		icatypes.ModuleName,
+		// TODO: ibcfee?
+		// TODO: ibchooks?
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
