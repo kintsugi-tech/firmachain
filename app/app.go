@@ -291,49 +291,55 @@ type App struct {
 	tkeys   map[string]*storetypes.TransientStoreKey
 	memKeys map[string]*storetypes.MemoryStoreKey
 
-	// keepers
+	// SDK Keepers
 	AccountKeeper         authkeeper.AccountKeeper
+	AuthzKeeper           authzkeeper.Keeper
 	BankKeeper            bankkeeper.Keeper
 	CapabilityKeeper      *capabilitykeeper.Keeper
-	StakingKeeper         *stakingkeeper.Keeper
-	SlashingKeeper        slashingkeeper.Keeper
-	MintKeeper            mintkeeper.Keeper
-	DistrKeeper           distrkeeper.Keeper
-	GovKeeper             govkeeper.Keeper
-	CrisisKeeper          *crisiskeeper.Keeper
-	UpgradeKeeper         *upgradekeeper.Keeper
-	ParamsKeeper          paramskeeper.Keeper
-	AuthzKeeper           authzkeeper.Keeper
-	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	EvidenceKeeper        evidencekeeper.Keeper
-	TransferKeeper        ibctransferkeeper.Keeper
-	FeeGrantKeeper        feegrantkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
-	ICAHostKeeper         icahostkeeper.Keeper
-	IBCHooksKeeper        *ibchookskeeper.Keeper
-	IBCFeeKeeper          ibcfeekeeper.Keeper
+	CrisisKeeper          *crisiskeeper.Keeper
+	DistrKeeper           distrkeeper.Keeper
+	EvidenceKeeper        evidencekeeper.Keeper
+	FeeGrantKeeper        feegrantkeeper.Keeper
+	GovKeeper             govkeeper.Keeper
+	MintKeeper            mintkeeper.Keeper
+	ParamsKeeper          paramskeeper.Keeper
+	SlashingKeeper        slashingkeeper.Keeper
+	StakingKeeper         *stakingkeeper.Keeper
+	UpgradeKeeper         *upgradekeeper.Keeper
 
-	// make scoped keepers public for test purposes
+	// IBC Keepers
+	IBCKeeper      *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	TransferKeeper ibctransferkeeper.Keeper
+	IBCFeeKeeper   ibcfeekeeper.Keeper
+	IBCHooksKeeper *ibchookskeeper.Keeper
+
+	// Wasm Keepers
+	WasmKeeper wasmkeeper.Keeper
+
+	// ICA Keepers
+	ICAHostKeeper icahostkeeper.Keeper
+
+	// Custom Keepers
+	NftKeeper      nftmodulekeeper.Keeper
+	ContractKeeper contractmodulekeeper.Keeper
+	TokenKeeper    tokenmodulekeeper.Keeper
+	BurnKeeper     burnmodulekeeper.Keeper
+
+	// Scoped Keepers (public for test purposes)
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper  capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 	ScopedWasmKeeper     capabilitykeeper.ScopedKeeper
 
-	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-	NftKeeper      nftmodulekeeper.Keeper
-	ContractKeeper contractmodulekeeper.Keeper
-	TokenKeeper    tokenmodulekeeper.Keeper
-	BurnKeeper     burnmodulekeeper.Keeper
-	WasmKeeper     wasm.Keeper
-
-	// Middleware wrapper
+	// IBC Hooks
 	Ics20WasmHooks   *ibc_hooks.WasmHooks
 	HooksICS4Wrapper ibc_hooks.ICS4Middleware
 
-	// the module manager
+	// Module Manager
 	mm *module.Manager
 
-	// sm is the simulation manager
+	// Simulation Manager
 	sm *module.SimulationManager
 }
 
@@ -381,22 +387,38 @@ func New(
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
-	// TODO: ibhost removed StoreKey from v6 to v7. Is it still needed?
-	legacyIbchostStoreKey := "ibc"
-	legacyIbchostModuleName := "ibchost"
-
+	// FIXME: ibc: ibcexported.StoreKey ('ibc', ex:ibchost.StoreKey -> ) | ibctransfertypes.StoreKey ('transfer') | icahosttypes.StoreKey ('icahost')
 	keys := sdk.NewKVStoreKeys(
-		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
-		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
-		govtypes.StoreKey, paramstypes.StoreKey, legacyIbchostStoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
-		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey, authzkeeper.StoreKey,
-		// this line is used by starport scaffolding # stargate/app/storeKey
+		// SDK
+		authtypes.StoreKey,
+		authzkeeper.StoreKey,
+		banktypes.StoreKey,
+		capabilitytypes.StoreKey,
+		consensusparamtypes.StoreKey,
+		crisistypes.StoreKey,
+		distrtypes.StoreKey,
+		evidencetypes.StoreKey,
+		feegrant.StoreKey,
+		govtypes.StoreKey,
+		minttypes.StoreKey,
+		paramstypes.StoreKey,
+		slashingtypes.StoreKey,
+		stakingtypes.StoreKey,
+		upgradetypes.StoreKey,
+		// IBC
+		ibcexported.StoreKey,
+		ibctransfertypes.StoreKey,
+		ibcfeetypes.StoreKey,
+		ibchookstypes.StoreKey,
+		// Wasm
+		wasmtypes.StoreKey,
+		// ICA
+		icahosttypes.StoreKey,
+		// Custom
 		nftmoduletypes.StoreKey,
 		contractmoduletypes.StoreKey,
 		tokenmoduletypes.StoreKey,
 		burnmoduletypes.StoreKey,
-		wasmtypes.StoreKey,
-		icahosttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -415,20 +437,16 @@ func New(
 
 	govModAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
-	// set the BaseApp's parameter store
-
-	//bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()))
 	app.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, keys[consensusparamtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String())
 	bApp.SetParamStore(&app.ConsensusParamsKeeper)
 
-	// add capability keeper and ScopeToModule for ibc module
 	app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
 
-	// grant capabilities for the ibc and ibc-transfer modules
+	// Register the scoped keepers
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
-	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-	scopedWasmKeeper := app.CapabilityKeeper.ScopeToModule(wasm.ModuleName)
+	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
+	scopedWasmKeeper := app.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
 
 	// add keepers
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
@@ -439,7 +457,6 @@ func New(
 		Bech32Prefix,
 		govModAddress,
 	)
-
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec,
 		keys[banktypes.StoreKey],
@@ -687,8 +704,6 @@ func New(
 		app.AccountKeeper,
 	)
 	burnModule := burnmodule.NewAppModule(appCodec, app.BurnKeeper)
-
-	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	/****  Module Options ****/
 
