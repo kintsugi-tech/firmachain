@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -135,9 +136,11 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
 
+	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
+	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	consensusparams "github.com/cosmos/cosmos-sdk/x/consensus"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
@@ -438,6 +441,8 @@ func New(
 	}
 	homePath := cast.ToString(appOpts.Get(flags.FlagHome))
 
+	govModAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+
 	// ============ Keepers ============
 	// TODO: Move keepers in app/keepers/keepers.go
 	app.AppKeepers.CapabilityKeeper = capabilitykeeper.NewKeeper(
@@ -469,7 +474,6 @@ func New(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	bApp.SetParamStore(&app.AppKeepers.ConsensusParamsKeeper)
-	govModAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	app.AppKeepers.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec,
 		keys[authtypes.StoreKey],
@@ -941,6 +945,14 @@ func New(
 
 	// ============ Initialization ============
 	app.setupUpgradeHandlers(app.configurator)
+
+	// SDK v47 - since we do not use dep inject, this gives us access to newer gRPC services.
+	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.mm.Modules))
+	reflectionSvc, err := runtimeservices.NewReflectionService()
+	if err != nil {
+		panic(err)
+	}
+	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
 
 	// initialize stores
 	app.MountKVStores(keys)
