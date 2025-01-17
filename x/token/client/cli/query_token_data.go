@@ -53,10 +53,10 @@ func CmdShowTokenData() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			argTokenID := args[0]
+			argTokenId := args[0]
 
 			params := &types.TokenDataRequest{
-				TokenId: argTokenID,
+				TokenId: argTokenId,
 			}
 
 			res, err := queryClient.TokenData(context.Background(), params)

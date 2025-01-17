@@ -371,25 +371,25 @@ func (m *MsgBurnResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgBurnResponse proto.InternalMessageInfo
 
-// MsgUpdateTokenURI
-type MsgUpdateTokenURI struct {
+// MsgUpdateTokenUri
+type MsgUpdateTokenUri struct {
 	Owner    string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	TokenId  string `protobuf:"bytes,2,opt,name=token_id,json=tokenId,proto3" json:"token_id,omitempty"`
 	TokenUri string `protobuf:"bytes,3,opt,name=token_uri,json=tokenUri,proto3" json:"token_uri,omitempty"`
 }
 
-func (m *MsgUpdateTokenURI) Reset()         { *m = MsgUpdateTokenURI{} }
-func (m *MsgUpdateTokenURI) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateTokenURI) ProtoMessage()    {}
-func (*MsgUpdateTokenURI) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateTokenUri) Reset()         { *m = MsgUpdateTokenUri{} }
+func (m *MsgUpdateTokenUri) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateTokenUri) ProtoMessage()    {}
+func (*MsgUpdateTokenUri) Descriptor() ([]byte, []int) {
 	return fileDescriptor_762066d40a01a5e0, []int{6}
 }
-func (m *MsgUpdateTokenURI) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateTokenUri) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateTokenURI) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateTokenUri) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateTokenURI.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateTokenUri.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -399,55 +399,55 @@ func (m *MsgUpdateTokenURI) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateTokenURI) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateTokenURI.Merge(m, src)
+func (m *MsgUpdateTokenUri) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateTokenUri.Merge(m, src)
 }
-func (m *MsgUpdateTokenURI) XXX_Size() int {
+func (m *MsgUpdateTokenUri) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateTokenURI) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateTokenURI.DiscardUnknown(m)
+func (m *MsgUpdateTokenUri) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateTokenUri.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateTokenURI proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateTokenUri proto.InternalMessageInfo
 
-func (m *MsgUpdateTokenURI) GetOwner() string {
+func (m *MsgUpdateTokenUri) GetOwner() string {
 	if m != nil {
 		return m.Owner
 	}
 	return ""
 }
 
-func (m *MsgUpdateTokenURI) GetTokenId() string {
+func (m *MsgUpdateTokenUri) GetTokenId() string {
 	if m != nil {
 		return m.TokenId
 	}
 	return ""
 }
 
-func (m *MsgUpdateTokenURI) GetTokenUri() string {
+func (m *MsgUpdateTokenUri) GetTokenUri() string {
 	if m != nil {
 		return m.TokenUri
 	}
 	return ""
 }
 
-// MsgUpdateTokenURIResponse
-type MsgUpdateTokenURIResponse struct {
+// MsgUpdateTokenUriResponse
+type MsgUpdateTokenUriResponse struct {
 }
 
-func (m *MsgUpdateTokenURIResponse) Reset()         { *m = MsgUpdateTokenURIResponse{} }
-func (m *MsgUpdateTokenURIResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateTokenURIResponse) ProtoMessage()    {}
-func (*MsgUpdateTokenURIResponse) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateTokenUriResponse) Reset()         { *m = MsgUpdateTokenUriResponse{} }
+func (m *MsgUpdateTokenUriResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateTokenUriResponse) ProtoMessage()    {}
+func (*MsgUpdateTokenUriResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_762066d40a01a5e0, []int{7}
 }
-func (m *MsgUpdateTokenURIResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateTokenUriResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateTokenURIResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateTokenUriResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateTokenURIResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateTokenUriResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -457,17 +457,17 @@ func (m *MsgUpdateTokenURIResponse) XXX_Marshal(b []byte, deterministic bool) ([
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateTokenURIResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateTokenURIResponse.Merge(m, src)
+func (m *MsgUpdateTokenUriResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateTokenUriResponse.Merge(m, src)
 }
-func (m *MsgUpdateTokenURIResponse) XXX_Size() int {
+func (m *MsgUpdateTokenUriResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateTokenURIResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateTokenURIResponse.DiscardUnknown(m)
+func (m *MsgUpdateTokenUriResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateTokenUriResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateTokenURIResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateTokenUriResponse proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*MsgCreateToken)(nil), "firmachain.token.MsgCreateToken")
@@ -476,8 +476,8 @@ func init() {
 	proto.RegisterType((*MsgMintResponse)(nil), "firmachain.token.MsgMintResponse")
 	proto.RegisterType((*MsgBurn)(nil), "firmachain.token.MsgBurn")
 	proto.RegisterType((*MsgBurnResponse)(nil), "firmachain.token.MsgBurnResponse")
-	proto.RegisterType((*MsgUpdateTokenURI)(nil), "firmachain.token.MsgUpdateTokenURI")
-	proto.RegisterType((*MsgUpdateTokenURIResponse)(nil), "firmachain.token.MsgUpdateTokenURIResponse")
+	proto.RegisterType((*MsgUpdateTokenUri)(nil), "firmachain.token.MsgUpdateTokenUri")
+	proto.RegisterType((*MsgUpdateTokenUriResponse)(nil), "firmachain.token.MsgUpdateTokenUriResponse")
 }
 
 func init() { proto.RegisterFile("firmachain/token/tx.proto", fileDescriptor_762066d40a01a5e0) }
@@ -539,8 +539,8 @@ type MsgClient interface {
 	Mint(ctx context.Context, in *MsgMint, opts ...grpc.CallOption) (*MsgMintResponse, error)
 	// Burn
 	Burn(ctx context.Context, in *MsgBurn, opts ...grpc.CallOption) (*MsgBurnResponse, error)
-	// UpdateTokenURI
-	UpdateTokenURI(ctx context.Context, in *MsgUpdateTokenURI, opts ...grpc.CallOption) (*MsgUpdateTokenURIResponse, error)
+	// UpdateTokenUri
+	UpdateTokenUri(ctx context.Context, in *MsgUpdateTokenUri, opts ...grpc.CallOption) (*MsgUpdateTokenUriResponse, error)
 }
 
 type msgClient struct {
@@ -578,9 +578,9 @@ func (c *msgClient) Burn(ctx context.Context, in *MsgBurn, opts ...grpc.CallOpti
 	return out, nil
 }
 
-func (c *msgClient) UpdateTokenURI(ctx context.Context, in *MsgUpdateTokenURI, opts ...grpc.CallOption) (*MsgUpdateTokenURIResponse, error) {
-	out := new(MsgUpdateTokenURIResponse)
-	err := c.cc.Invoke(ctx, "/firmachain.token.Msg/UpdateTokenURI", in, out, opts...)
+func (c *msgClient) UpdateTokenUri(ctx context.Context, in *MsgUpdateTokenUri, opts ...grpc.CallOption) (*MsgUpdateTokenUriResponse, error) {
+	out := new(MsgUpdateTokenUriResponse)
+	err := c.cc.Invoke(ctx, "/firmachain.token.Msg/UpdateTokenUri", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -595,8 +595,8 @@ type MsgServer interface {
 	Mint(context.Context, *MsgMint) (*MsgMintResponse, error)
 	// Burn
 	Burn(context.Context, *MsgBurn) (*MsgBurnResponse, error)
-	// UpdateTokenURI
-	UpdateTokenURI(context.Context, *MsgUpdateTokenURI) (*MsgUpdateTokenURIResponse, error)
+	// UpdateTokenUri
+	UpdateTokenUri(context.Context, *MsgUpdateTokenUri) (*MsgUpdateTokenUriResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -612,8 +612,8 @@ func (*UnimplementedMsgServer) Mint(ctx context.Context, req *MsgMint) (*MsgMint
 func (*UnimplementedMsgServer) Burn(ctx context.Context, req *MsgBurn) (*MsgBurnResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Burn not implemented")
 }
-func (*UnimplementedMsgServer) UpdateTokenURI(ctx context.Context, req *MsgUpdateTokenURI) (*MsgUpdateTokenURIResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateTokenURI not implemented")
+func (*UnimplementedMsgServer) UpdateTokenUri(ctx context.Context, req *MsgUpdateTokenUri) (*MsgUpdateTokenUriResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTokenUri not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -674,20 +674,20 @@ func _Msg_Burn_Handler(srv interface{}, ctx context.Context, dec func(interface{
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_UpdateTokenURI_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgUpdateTokenURI)
+func _Msg_UpdateTokenUri_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateTokenUri)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).UpdateTokenURI(ctx, in)
+		return srv.(MsgServer).UpdateTokenUri(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/firmachain.token.Msg/UpdateTokenURI",
+		FullMethod: "/firmachain.token.Msg/UpdateTokenUri",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).UpdateTokenURI(ctx, req.(*MsgUpdateTokenURI))
+		return srv.(MsgServer).UpdateTokenUri(ctx, req.(*MsgUpdateTokenUri))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -709,8 +709,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_Burn_Handler,
 		},
 		{
-			MethodName: "UpdateTokenURI",
-			Handler:    _Msg_UpdateTokenURI_Handler,
+			MethodName: "UpdateTokenUri",
+			Handler:    _Msg_UpdateTokenUri_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -958,7 +958,7 @@ func (m *MsgBurnResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUpdateTokenURI) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateTokenUri) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -968,12 +968,12 @@ func (m *MsgUpdateTokenURI) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateTokenURI) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateTokenUri) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateTokenURI) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateTokenUri) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1002,7 +1002,7 @@ func (m *MsgUpdateTokenURI) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUpdateTokenURIResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateTokenUriResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1012,12 +1012,12 @@ func (m *MsgUpdateTokenURIResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateTokenURIResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateTokenUriResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateTokenURIResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateTokenUriResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1144,7 +1144,7 @@ func (m *MsgBurnResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgUpdateTokenURI) Size() (n int) {
+func (m *MsgUpdateTokenUri) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1165,7 +1165,7 @@ func (m *MsgUpdateTokenURI) Size() (n int) {
 	return n
 }
 
-func (m *MsgUpdateTokenURIResponse) Size() (n int) {
+func (m *MsgUpdateTokenUriResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1884,7 +1884,7 @@ func (m *MsgBurnResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUpdateTokenURI) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateTokenUri) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1907,10 +1907,10 @@ func (m *MsgUpdateTokenURI) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateTokenURI: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateTokenUri: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateTokenURI: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateTokenUri: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2030,7 +2030,7 @@ func (m *MsgUpdateTokenURI) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUpdateTokenURIResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateTokenUriResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2053,10 +2053,10 @@ func (m *MsgUpdateTokenURIResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateTokenURIResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateTokenUriResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateTokenURIResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateTokenUriResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

@@ -79,7 +79,7 @@ func (ms msgServer) Mint(goCtx context.Context, msg *types.MsgMint) (*types.MsgM
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute("Owner", msg.Owner),
-		sdk.NewAttribute("TokenID", msg.TokenId),
+		sdk.NewAttribute("TokenId", msg.TokenId),
 		sdk.NewAttribute("MintAmount", strconv.FormatUint(msg.Amount, 10)),
 		sdk.NewAttribute("TotalSupply", strconv.FormatUint(tokenData.TotalSupply, 10)),
 	))

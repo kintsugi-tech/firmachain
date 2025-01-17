@@ -9,7 +9,7 @@ import (
 	"github.com/firmachain/firmachain/v05/x/token/types"
 )
 
-func (ms msgServer) UpdateTokenURI(goCtx context.Context, msg *types.MsgUpdateTokenURI) (*types.MsgUpdateTokenURIResponse, error) {
+func (ms msgServer) UpdateTokenUri(goCtx context.Context, msg *types.MsgUpdateTokenUri) (*types.MsgUpdateTokenUriResponse, error) {
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
@@ -49,5 +49,5 @@ func (ms msgServer) UpdateTokenURI(goCtx context.Context, msg *types.MsgUpdateTo
 		sdk.NewAttribute("TokenUri", tokenData.TokenUri),
 	))
 
-	return &types.MsgUpdateTokenURIResponse{}, nil
+	return &types.MsgUpdateTokenUriResponse{}, nil
 }
