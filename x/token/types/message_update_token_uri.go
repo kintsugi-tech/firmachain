@@ -11,8 +11,8 @@ var _ sdk.Msg = &MsgUpdateTokenURI{}
 func NewMsgUpdateTokenURI(owner string, tokenID string, tokenURI string) *MsgUpdateTokenURI {
 	return &MsgUpdateTokenURI{
 		Owner:    owner,
-		TokenID:  tokenID,
-		TokenURI: tokenURI,
+		TokenId:  tokenID,
+		TokenUri: tokenURI,
 	}
 }
 

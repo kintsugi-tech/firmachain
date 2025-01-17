@@ -11,7 +11,7 @@ var _ sdk.Msg = &MsgMint{}
 func NewMsgMint(owner string, tokenID string, amount uint64, toAddress string) *MsgMint {
 	return &MsgMint{
 		Owner:     owner,
-		TokenID:   tokenID,
+		TokenId:   tokenID,
 		Amount:    amount,
 		ToAddress: toAddress,
 	}

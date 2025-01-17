@@ -11,7 +11,7 @@ var _ sdk.Msg = &MsgBurn{}
 func NewMsgBurn(owner string, tokenID string, amount uint64) *MsgBurn {
 	return &MsgBurn{
 		Owner:   owner,
-		TokenID: tokenID,
+		TokenId: tokenID,
 		Amount:  amount,
 	}
 }

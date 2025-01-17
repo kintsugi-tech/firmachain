@@ -44,10 +44,10 @@ func (ms msgServer) CreateToken(goCtx context.Context, msg *types.MsgCreateToken
 
 	var tokenData = types.TokenData{
 		Owner:        msg.Owner,
-		TokenID:      tokenID,
+		TokenId:      tokenID,
 		Name:         msg.Name,
 		Symbol:       msg.Symbol,
-		TokenURI:     msg.TokenURI,
+		TokenUri:     msg.TokenUri,
 		TotalSupply:  msg.TotalSupply,
 		Decimal:      msg.Decimal,
 		Mintable:     msg.Mintable,

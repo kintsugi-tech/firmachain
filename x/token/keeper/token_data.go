@@ -67,7 +67,7 @@ func (k Keeper) RemoveTokenData(
 func (k Keeper) SetTokenData(ctx sdk.Context, tokenData types.TokenData) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TokenDataKeyPrefix))
 	b := k.cdc.MustMarshal(&tokenData)
-	store.Set(types.TokenDataKey(tokenData.TokenID), b)
+	store.Set(types.TokenDataKey(tokenData.TokenId), b)
 
 	k.SetTokenDataToAccount(ctx, tokenData)
 }
@@ -76,7 +76,7 @@ func (k Keeper) SetTokenDataToAccount(ctx sdk.Context, tokenData types.TokenData
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.OwnerOfTokenKey))
 	accountStore := prefix.NewStore(store, []byte(tokenData.Owner))
 
-	accountStore.Set([]byte(tokenData.TokenID), GetBytesFromUInt64(1))
+	accountStore.Set([]byte(tokenData.TokenId), GetBytesFromUInt64(1))
 }
 
 // GetTokenData returns a tokenData from its index
