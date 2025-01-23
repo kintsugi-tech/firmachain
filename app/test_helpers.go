@@ -128,8 +128,16 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	// commit genesis changes
 	firmachainApp.Commit()
 
-	newCtx := firmachainApp.NewContext(false)
-	firmachainApp.ModuleManager().BeginBlock(newCtx)
+	newCtx := firmachainApp.NewContextLegacy(true, tmproto.Header{
+		ChainID:            "testing",
+		Height:             firmachainApp.LastBlockHeight() + 1,
+		AppHash:            firmachainApp.LastCommitID().Hash,
+		ValidatorsHash:     valSet.Hash(),
+		NextValidatorsHash: valSet.Hash(),
+		Time:               time.Now().UTC(),
+	})
+	_, err = firmachainApp.ModuleManager().BeginBlock(newCtx)
+	require.NoError(t, err)
 
 	return firmachainApp
 }

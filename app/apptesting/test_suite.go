@@ -54,7 +54,7 @@ var (
 func (s *KeeperTestHelper) Setup() {
 	t := s.T()
 	s.App = app.Setup(t)
-	s.Ctx = s.App.BaseApp.NewContextLegacy(false, tmtypes.Header{Height: 1, ChainID: "juno-1", Time: time.Now().UTC()})
+	s.Ctx = s.App.BaseApp.NewContextLegacy(true, tmtypes.Header{Height: 1, ChainID: "juno-1", Time: time.Now().UTC()})
 	s.QueryHelper = &baseapp.QueryServiceTestHelper{
 		GRPCQueryRouter: s.App.GRPCQueryRouter(),
 		Ctx:             s.Ctx,
