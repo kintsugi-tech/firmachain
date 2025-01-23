@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/firmachain/firmachain/v05/app/apptesting"
-	v26 "github.com/firmachain/firmachain/v05/app/upgrades/v05"
+	v05 "github.com/firmachain/firmachain/v05/app/upgrades/v05"
 )
 
 type UpgradeTestSuite struct {
@@ -27,7 +27,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 	preUpgradeChecks(s)
 
 	upgradeHeight := int64(5)
-	s.ConfirmUpgradeSucceeded(v26.UpgradeName, upgradeHeight)
+	s.ConfirmUpgradeSucceeded(v05.UpgradeName, upgradeHeight)
 
 	postUpgradeChecks(s)
 }

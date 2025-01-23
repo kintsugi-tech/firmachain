@@ -95,9 +95,7 @@ func Setup(t *testing.T) *App {
 		Coins:   sdk.NewCoins(sdk.NewCoin(appparams.DefaultBondDenom, math.NewInt(100000000000000))),
 	}
 
-	ctx := sdk.NewContext(nil, tmproto.Header{ChainID: "testing"}, false, log.NewNopLogger())
-
-	app := SetupWithGenesisValSet(t, ctx, valSet, []authtypes.GenesisAccount{acc}, balance)
+	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
 
 	return app
 }
@@ -106,7 +104,7 @@ func Setup(t *testing.T) *App {
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit in the default token of the firmachainApp from first genesis
 // account. A Nop logger is set in firmachainApp.
-func SetupWithGenesisValSet(t *testing.T, ctx sdk.Context, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *App {
+func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *App {
 	t.Helper()
 
 	firmachainApp, genesisState := setup(t, true)
@@ -129,7 +127,9 @@ func SetupWithGenesisValSet(t *testing.T, ctx sdk.Context, valSet *tmtypes.Valid
 
 	// commit genesis changes
 	firmachainApp.Commit()
-	firmachainApp.ModuleManager().BeginBlock(ctx)
+
+	newCtx := firmachainApp.NewContext(false)
+	firmachainApp.ModuleManager().BeginBlock(newCtx)
 
 	return firmachainApp
 }
@@ -199,7 +199,7 @@ func genesisStateWithValSet(t *testing.T,
 			MinSelfDelegation: math.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), val.Address.String(), math.LegacyOneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), sdk.ValAddress(val.Address).String(), math.LegacyOneDec()))
 
 	}
 
