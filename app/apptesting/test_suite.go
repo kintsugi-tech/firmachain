@@ -32,6 +32,8 @@ import (
 
 	"github.com/firmachain/firmachain/v05/app"
 	appparams "github.com/firmachain/firmachain/v05/app/params"
+
+	header "cosmossdk.io/core/header"
 )
 
 type KeeperTestHelper struct {
@@ -53,7 +55,7 @@ var (
 // Setup sets up basic environment for suite (App, Ctx, and test accounts)
 func (s *KeeperTestHelper) Setup() {
 	t := s.T()
-	s.App = app.Setup(t)
+	s.App = app.SetupApp(t)
 	s.Ctx = s.App.BaseApp.NewContextLegacy(true, tmtypes.Header{Height: 1, ChainID: "juno-1", Time: time.Now().UTC()})
 	s.QueryHelper = &baseapp.QueryServiceTestHelper{
 		GRPCQueryRouter: s.App.GRPCQueryRouter(),
@@ -68,7 +70,7 @@ func (s *KeeperTestHelper) Setup() {
 func (s *KeeperTestHelper) SetupTestForInitGenesis() {
 	t := s.T()
 	// Setting to True, leads to init genesis not running
-	s.App = app.Setup(t)
+	s.App = app.SetupApp(t)
 	s.Ctx = s.App.BaseApp.NewContextLegacy(true, tmtypes.Header{
 		ChainID: "testing",
 	})
@@ -232,13 +234,23 @@ func (s *KeeperTestHelper) ConfirmUpgradeSucceeded(upgradeName string, upgradeHe
 	plan := upgradetypes.Plan{Name: upgradeName, Height: upgradeHeight}
 	err := s.App.AppKeepers.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
 	s.Require().NoError(err)
-	_, err = s.App.AppKeepers.UpgradeKeeper.GetUpgradePlan(s.Ctx)
+	planGot, err := s.App.AppKeepers.UpgradeKeeper.GetUpgradePlan(s.Ctx)
+	_ = planGot
 	s.Require().NoError(err)
 
 	s.Ctx = s.Ctx.WithBlockHeight(upgradeHeight)
-	s.Require().NotPanics(func() {
-		s.App.BeginBlocker(s.Ctx)
-	})
+
+	s.Ctx = s.Ctx.WithHeaderInfo(header.Info{Height: upgradeHeight, Time: s.Ctx.BlockTime().Add(time.Second)}).WithBlockHeight(upgradeHeight)
+	/*
+		s.Require().NotPanics(func() {
+			res, err := s.App.PreBlocker(s.Ctx, nil)
+			_ = res
+			s.Require().NoError(err)
+		})
+	*/
+	res, err := s.App.PreBlocker(s.Ctx, nil)
+	_ = res
+	s.Require().NoError(err)
 }
 
 // CreateRandomAccounts is a function return a list of randomly generated AccAddresses

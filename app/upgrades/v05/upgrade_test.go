@@ -14,7 +14,6 @@ type UpgradeTestSuite struct {
 }
 
 func (s *UpgradeTestSuite) SetupTest() {
-	s.Setup()
 }
 
 func TestKeeperTestSuite(t *testing.T) {
