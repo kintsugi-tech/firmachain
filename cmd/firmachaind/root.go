@@ -58,9 +58,8 @@ var emptyWasmOpts []wasmkeeper.Option
 var tempDir = func() string {
 	dir, err := os.MkdirTemp("", ".firmachain")
 	if err != nil {
-		dir = app.DefaultNodeHome
+		panic("failed to create temp dir: " + err.Error())
 	}
-	defer os.RemoveAll(dir)
 
 	return dir
 }
@@ -74,6 +73,11 @@ func NewRootCmd() *cobra.Command {
 	// we "pre"-instantiate the application for getting the injected/configured encoding configuration
 	initAppOptions := viper.New()
 	tempDir := tempDir()
+
+	// cleanup temp dir after we are done with the tempApp, so we don't leave behind a
+	// new temporary directory for every invocation. See https://github.com/CosmWasm/wasmd/issues/2017
+	defer os.RemoveAll(tempDir)
+
 	initAppOptions.Set(flags.FlagHome, tempDir)
 	tempApp := app.New(
 		log.NewNopLogger(),
